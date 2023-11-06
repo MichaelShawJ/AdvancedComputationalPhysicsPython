@@ -1,3 +1,11 @@
+# Overview
+# The code calculates the hyperbolic sine (sinh) of a value (2π) using three different methods:
+# 1)     Using the built-in 'sinh' function from the 'math' module.
+# 2)     Using the formula sinh(x)=1/2(exp(x)−exp(−x)) 
+# and 3) Using for the formula, sinh(x)=1/2(e(x)−e(−x))
+# The code then prints the results of these three methods in different formats 
+# and finally calculates the differences between the results.
+
 # Import necessary functions and constants from the math module
 from math import sinh, exp, e, pi
 
