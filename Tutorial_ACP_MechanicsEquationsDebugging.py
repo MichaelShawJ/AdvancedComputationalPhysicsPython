@@ -4,9 +4,8 @@ Author: Michael Shaw
 Background: 
     This program has had intentional bugs placed in it,
     I was tasked to remove the bugs so that it may run correctly.
- 
-Inputs:      Initial positions (x,y), Velocities(x,y), Accelerations (x,y)
-Outputs:     A plot of the projectile motion of a particle/object
+    Inputs: Initial positions (x,y), Velocities(x,y), Accelerations (x,y)
+    Outputs: A plot of the projectile motion of a particle/object
 
 Usage and Test Case:
 Terminal: python Tutorial_ACP_LogisticSystem_ODE_Solver_Euler_RK4.py

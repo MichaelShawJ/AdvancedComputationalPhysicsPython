@@ -1,7 +1,10 @@
 
 """
-Author: Michael Shaw
-This is an updated ODE solver comparing Runga-Kutta 4, Backward and Forward Euler
+Author: 
+    Michael Shaw
+
+Background:
+    This is an updated ODE solver comparing Runga-Kutta 4, Backward and Forward Euler
 with Newton's approximations.
 
 This script solves the differential equation dt/du=−u 
@@ -16,14 +19,12 @@ The Newton function here is a placeholder; if you have a specific
 implementation, especially for vectorized functions or more complex ODEs, 
 you should use that instead.
 """
-
+# Import Libraries
 import numpy as np
 from scipy.integrate import solve_ivp
 
 class ODESolver:
-    """
-    Superclass for numerical methods solving scalar and vector ODEs.
-    """
+    # Superclass for numerical methods solving scalar and vector ODEs
     def __init__(self, f):
         if not callable(f):
             raise TypeError(f'f is {type(f)}, not a function')
@@ -125,38 +126,40 @@ def Newton(F, x0, F_derivative, tol=1e-10, max_iter=30):
         x = x - dx
     raise RuntimeError("Newton's method failed to converge.")
 
-# Example ODE: du/dt = -u, with analytical solution u(t) = exp(-t)
 def f_example(u, t):
     return -u
 
 def u_exact(t):
     return np.exp(-t)
 
-# Set up the problem
-U0 = 1
-T = 5
-n = 100
-t_points = np.linspace(0, T, n)
+def compare_methods(U0, T, n, f):
+    t_points = np.linspace(0, T, n)
+    solutions = {}
 
-# Solve with our solvers
-methods = [ForwardEuler, RungeKutta4, BackwardEuler]
-solutions = {}
+    for method_class in [ForwardEuler, RungeKutta4, BackwardEuler]:
+        method = method_class(f)
+        method.set_initial_condition(U0)
+        u, t = method.solve(t_points)
+        solutions[method_class.__name__] = u
 
-for method_class in methods:
-    method = method_class(f_example)
-    method.set_initial_condition(U0)
-    u, t = method.solve(t_points)
-    solutions[method_class.__name__] = u
+    # Solve with solve_ivp
+    sol = solve_ivp(f, [0, T], [U0], t_eval=t_points, method='RK45')
 
-# Solve with solve_ivp
-sol = solve_ivp(f_example, [0, T], [U0], t_eval=t_points, method='RK45')
+    # Compare solutions
+    print("Method\t\tMax Error")
+    for method_name, u in solutions.items():
+        error = np.max(np.abs(u - u_exact(t_points)))
+        print(f"{method_name}\t{error:.2e}")
 
-# Compare solutions
-print("Method\t\tMax Error")
-for method_name, u in solutions.items():
-    error = np.max(np.abs(u - u_exact(t_points)))
-    print(f"{method_name}\t{error:.2e}")
+    # For solve_ivp (using RK45, which is similar to RungeKutta4)
+    error_ivp = np.max(np.abs(sol.y[0] - u_exact(t_points)))
+    print(f"solve_ivp (RK45)\t{error_ivp:.2e}")
 
-# For solve_ivp (using RK45, which is similar to RungeKutta4)
-error_ivp = np.max(np.abs(sol.y[0] - u_exact(t_points)))
-print(f"solve_ivp (RK45)\t{error_ivp:.2e}")
+def main():
+    U0 = 1
+    T = 5
+    n = 100
+    compare_methods(U0, T, n, f_example)
+
+if __name__ == "__main__":
+    main()

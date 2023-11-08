@@ -42,70 +42,60 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
 
-# Defining the class of systems of equations and solutions
 class OscSystem:
     def __init__(self, m, beta, k, g, w_ddot):
-        self.m, self.beta, self.k, self.g, self.w_ddot = m, beta, k, g, w_ddot
+        self.m = m
+        self.beta = beta
+        self.k = k
+        self.g = g
+        self.w_ddot = w_ddot
     
     def system_of_equations(self, t, u):
-        # u is a vector such that u[0] = displacement (u) and u[1] = velocity (u')
-        # This function should return [u', u''] which is the first derivative of u
-        # with respect to t.
-        u0, u1 = u  # u0 is the displacement, u1 is the velocity
-        # The second derivative of the displacement
-        u2 = (self.w_ddot(t) + self.g - (self.beta/self.m)*u1 - (self.k/self.m)*u0)
+        u0, u1 = u
+        u2 = (self.w_ddot(t) + self.g - (self.beta / self.m) * u1 - (self.k / self.m) * u0)
         return [u1, u2]
 
-# Test case: w(t) = 0 which implies w''(t) = 0
-# Therefore, the second derivative of w with respect to time is a function that returns 0
-w_ddot = lambda t: 0
+def plot_results(time, numerical, exact, title, ylabel):
+    plt.figure()
+    plt.plot(time, numerical, 'r-', label='Numerical')
+    plt.plot(time, exact, 'b--', label='Exact')
+    plt.title(title)
+    plt.legend()
+    plt.xlabel('Time t')
+    plt.ylabel(ylabel)
+    plt.grid(True)
+    plt.show()
 
-# Create the OscSystem object
-osc_sys = OscSystem(m=1.0, beta=0.0, k=1.0, g=0.0, w_ddot=w_ddot)
-
-# Initial conditions: u0 = 1 (initial displacement), u1 = 0 (initial velocity)
-u_init = [1.0, 0.0]
-
-# Time span for the simulation: 0 to 3.5 periods of the oscillation
-nperiods = 3.5
-T = 2 * np.pi * nperiods
-
-# Solve the ODE using different methods
-methods = [('RK23', 'Forward Euler', 200), ('RK45', 'Runge-Kutta 4', 20)]
-for method, name, npoints_per_period in methods:
-    n = npoints_per_period * nperiods
-    t_eval = np.linspace(0, T, int(n + 1))
-    sol = solve_ivp(osc_sys.system_of_equations, [0, T], u_init, method=method, t_eval=t_eval)
+def run_simulation(osc_system, initial_state, method, name, npoints_per_period, total_time):
+    n_points = int(npoints_per_period * total_time / (2 * np.pi) + 1)
+    t_eval = np.linspace(0, total_time, n_points)
+    solution = solve_ivp(osc_system.system_of_equations, [0, total_time], initial_state, method=method, t_eval=t_eval)
     
-    # Extract the solutions
-    u0_values = sol.y[0]
-    u1_values = sol.y[1]
-    u0_exact = np.cos(sol.t)
-    u1_exact = -np.sin(sol.t)
+    # Exact solutions
+    exact_displacement = np.cos(solution.t)
+    exact_velocity = -np.sin(solution.t)
     
     # Plot the results for displacement
-    plt.figure()
-    plt.plot(sol.t, u0_values, 'r-', label='Numerical')
-    plt.plot(sol.t, u0_exact, 'b--', label='Exact')
-    plt.title(f'Oscillating system; position - {name}')
-    plt.legend()
-    plt.xlabel('Time t')
-    plt.ylabel('Displacement u(t)')
-    plt.grid(True)
-    plt.show()
-
+    plot_results(solution.t, solution.y[0], exact_displacement, f'Displacement - {name}', 'Displacement u(t)')
+    
     # Plot the results for velocity
-    plt.figure()
-    plt.plot(sol.t, u1_values, 'r-', label='Numerical')
-    plt.plot(sol.t, u1_exact, 'b--', label='Exact')
-    plt.title(f'Oscillating system; velocity - {name}')
-    plt.legend()
-    plt.xlabel('Time t')
-    plt.ylabel('Velocity u\'(t)')
-    plt.grid(True)
-    plt.show()
+    plot_results(solution.t, solution.y[1], exact_velocity, f'Velocity - {name}', 'Velocity u\'(t)')
 
-# Please note that 'Forward Euler' is not a method directly available in solve_ivp,
-# 'RK23' is used as a substitute which is a low-order Runge-Kutta method suitable
-# for problems with smooth solutions. 'RK45' is the default method in solve_ivp and is
-# a higher-order method suitable for a wide range of problems.
+def main():
+    m = 1.0
+    beta = 0.0
+    k = 1.0
+    g = 0.0
+    w_ddot = lambda t: 0
+
+    osc_system = OscSystem(m, beta, k, g, w_ddot)
+    initial_state = [1.0, 0.0]  # [initial displacement, initial velocity]
+    nperiods = 3.5
+    total_time = 2 * np.pi * nperiods
+
+    methods = [('RK23', 'Forward Euler', 200), ('RK45', 'Runge-Kutta 4', 20)]
+    for method, name, npoints_per_period in methods:
+        run_simulation(osc_system, initial_state, method, name, npoints_per_period, total_time)
+
+if __name__ == '__main__':
+    main()

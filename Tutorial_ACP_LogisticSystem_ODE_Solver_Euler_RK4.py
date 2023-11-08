@@ -30,48 +30,54 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
 
-# Define the logistic growth function
-def logistic_growth(tau, v):
-    return v * (1 - v)
+def logistic_growth(t, population):
+    """Scaled logistic growth function."""
+    return population * (1 - population)
 
-# Initial conditions and parameters
-v0 = 0.05
-dtau = 0.05
-T = 10
-n = int(round(T / dtau))
-t_points = np.linspace(0, T, n + 1)
+def plot_logistic_solution(time, solution, title, xlabel, ylabel):
+    """Plot a given solution with appropriate labels and title."""
+    plt.plot(time, solution, label='Scaled logistic equation')
+    plt.title(title)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.legend()
+    plt.grid(True)
+    plt.show()
 
-# Solve the scaled logistic equation using Runge-Kutta 4 method (RK45 in solve_ivp)
-sol = solve_ivp(logistic_growth, [0, T], [v0], method='RK45', t_eval=t_points)
+def plot_rescaled_solutions(time, solution, alphas, T, title, xlabel, ylabel):
+    """Plot rescaled solutions for different alpha values."""
+    plt.figure()
+    for alpha in alphas:
+        rescaled_time, rescaled_population = rescale_solution(solution, time, alpha, R=1)
+        plt.plot(rescaled_time, rescaled_population, label=f'alpha={alpha}')
 
-# Plot the solution of the scaled logistic equation
-plt.figure()
-plt.plot(sol.t, sol.y[0], label='Scaled logistic equation')
-plt.title('Scaled logistic equation')
-plt.xlabel('Scaled time \( \\tau \)')
-plt.ylabel('Scaled population \( v \)')
-plt.legend()
-plt.grid(True)
-plt.show()
+    plt.axis([0, T, 0, 1.1 * max(solution)])
+    plt.title(title)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.legend()
+    plt.grid(True)
+    plt.show()
 
-# Function to rescale v and tau for different alpha and R values
-def u_and_t(v, tau, alpha, R):
-    return alpha * tau, R * v
+def rescale_solution(population, time, alpha, R):
+    """Rescale the solution for different alpha and R values."""
+    return alpha * time, R * population
 
-# Create a new figure for the rescaled solutions
-plt.figure()
+def main():
+    # Initial conditions and parameters for the scaled logistic equation
+    initial_population = 0.05
+    total_time = 10
+    time_points = np.linspace(0, total_time, 201)
 
-# Plot rescaled solutions for different values of alpha
-alphas = np.linspace(0.2, 1, 5)
-for alpha in alphas:
-    t, u = u_and_t(sol.y[0], sol.t, alpha, R=1)
-    plt.plot(t, u, label=f'alpha={alpha}')
+    # Solve the scaled logistic equation using Runge-Kutta 4 method
+    solution = solve_ivp(logistic_growth, [0, total_time], [initial_population], method='RK45', t_eval=time_points)
 
-# Set plot limits and labels
-plt.axis([0, T, 0, 1.1])
-plt.title('Rescaled logistic equation for different alpha')
-plt.xlabel('Time t')
-plt.ylabel('Population u')
-plt.legend()
-plt.grid(True)
-plt.show()
+    # Plot the solution of the scaled logistic equation
+    plot_logistic_solution(solution.t, solution.y[0], 'Scaled logistic equation', 'Scaled time \( \\tau \)', 'Scaled population \( v \)')
+
+    # Plot rescaled solutions for different values of alpha
+    alphas = np.linspace(0.2, 1, 5)
+    plot_rescaled_solutions(solution.t, solution.y[0], alphas, total_time, 'Rescaled logistic equation for different alpha', 'Time t', 'Population u')
+
+if __name__ == "__main__":
+    main()

@@ -34,66 +34,77 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import argparse
+import sys
 
-# Define command-line argument parsing
-parser = argparse.ArgumentParser(description="Illustrate Newton's method convergence.")
-parser.add_argument('f_formula', type=str, help='String formula for f(x)')
-parser.add_argument('df_formula', type=str, help='String formula for f\'(x) or "numeric" for numerical derivative')
-parser.add_argument('x0', type=float, help='Initial guess for the root')
-parser.add_argument('xmin', type=float, help='Minimum x-axis value')
-parser.add_argument('xmax', type=float, help='Maximum x-axis value')
-args = parser.parse_args()
+def parse_arguments():
+    # Define command-line argument parsing
+    parser = argparse.ArgumentParser(description="Illustrate Newton's method convergence.")
+    parser.add_argument('f_formula', type=str, help='String formula for f(x)')
+    parser.add_argument('df_formula', type=str, help='String formula for f\'(x) or "numeric" for numerical derivative')
+    parser.add_argument('x0', type=float, help='Initial guess for the root')
+    parser.add_argument('xmin', type=float, help='Minimum x-axis value')
+    parser.add_argument('xmax', type=float, help='Maximum x-axis value')
+    return parser.parse_args()
 
-# Define the function and its derivative
-def f(x):
-    return eval(args.f_formula)
+def main():
+    # Parse command line arguments
+    args = parse_arguments()
 
-def df(x):
-    if args.df_formula == 'numeric':
-        h = 1.0E-7
-        return (f(x+h) - f(x-h)) / (2*h)
-    else:
-        return eval(args.df_formula)
+    # Define the function and its derivative
+    def f(x):
+        return eval(args.f_formula)
 
-# Implement Newton's method
-def newton(f, df, x0, tol=1e-7, max_iter=100):
-    x = x0
-    for i in range(max_iter):
-        x_new = x - f(x) / df(x)
-        if abs(x_new - x) < tol:
-            return x_new, i + 1  # Return the root and the number of iterations
-        x = x_new
-    return x, max_iter
+    def df(x):
+        if args.df_formula == 'numeric':
+            h = 1.0E-7
+            return (f(x + h) - f(x - h)) / (2 * h)
+        else:
+            return eval(args.df_formula)
 
-# Perform Newton's method
-root, iterations = newton(f, df, args.x0)
-print(f"Root: {root} found in {iterations} iterations")
+    # Implement Newton's method
+    def newton_method(f, df, x0, tol=1e-7, max_iter=100):
+        x = x0
+        for i in range(max_iter):
+            x_new = x - f(x) / df(x)
+            if abs(x_new - x) < tol:
+                return x_new, i + 1  # Return the root and the number of iterations
+            x = x_new
+        return x, max_iter
 
-# Visualization
-fig, ax = plt.subplots()
+    # Perform Newton's method
+    root, iterations = newton_method(f, df, args.x0)
+    print(f"Root: {root} found in {iterations} iterations")
 
-# Plotting function
-x_vals = np.linspace(args.xmin, args.xmax, 400)
-y_vals = f(x_vals)
-ax.plot(x_vals, y_vals, label='f(x)')
+    # Visualization setup
+    fig, ax = plt.subplots()
+    x_vals = np.linspace(args.xmin, args.xmax, 400)
+    y_vals = f(x_vals)
+    ax.plot(x_vals, y_vals, label='f(x)')
 
-# Initialize the tangent line and root approximation line
-tangent_line, = ax.plot([], [], 'b-', label='Tangent')
-root_line, = ax.plot([], [], 'g-', label='Approximate Root')
+    # Initialize the tangent line and root approximation line
+    tangent_line, = ax.plot([], [], 'b-', label='Tangent')
+    root_line, = ax.plot([], [], 'g-', label='Approximate Root')
 
-# Update function for the animation
-def update(frame):
-    x = frame
-    y = f(x)
-    dydx = df(x)
-    tangent_line.set_data([x - y/dydx, x + y/dydx], [0, 2*y])
-    root_line.set_data([x, x], [0, y])
-    return tangent_line, root_line
+    # Update function for the animation
+    def update(frame):
+        x = frame
+        y = f(x)
+        dydx = df(x)
+        tangent_line.set_data([x - y / dydx, x + y / dydx], [0, 2 * y])
+        root_line.set_data([x, x], [0, y])
+        return tangent_line, root_line
 
-# Create the animation
-ani = FuncAnimation(fig, update, frames=np.linspace(args.x0, root, 100), blit=True)
-plt.legend()
-plt.show()
+    # Create the animation
+    ani = FuncAnimation(fig, update, frames=np.linspace(args.x0, root, 100), blit=True)
+    plt.legend()
+    plt.show()
 
-# Save the animation
-ani.save('newton_convergence.gif', writer='imagemagick', fps=10)
+    # Save the animation
+    ani.save('newton_convergence.gif', writer='imagemagick', fps=10)
+
+if __name__ == "__main__":
+    # Ensure there are command line arguments before proceeding
+    if len(sys.argv) < 6:
+        print("Usage: python Newton_movie.py f_formula df_formula x0 xmin xmax")
+        sys.exit(1)
+    main()
