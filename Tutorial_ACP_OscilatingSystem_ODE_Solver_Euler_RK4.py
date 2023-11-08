@@ -1,5 +1,9 @@
 '''
-This code is for simulating an oscillating system 
+Author: 
+    Michael Shaw
+
+Background: 
+    This code is for simulating an oscillating system 
 described by a second-order ordinary differential equation (ODE). 
 The code represents the ODE as a first-order system 
 and solves it using numerical methods. 
@@ -27,6 +31,10 @@ The code now includes comments for better readability.
 The exact solutions for an undamped oscillator with no external force are
 u(t)=cos(t) and⁡ u′(t)=−sin(t), which are used to compare against 
 the numerical solutions. These plots have been displayed directly in the output
+
+Usage:
+    terminal/cmd: python Tutorial_ACP_OscilatingSystem_ODE_Solver_Euler_RK4.py
+    Sypder: runfile('Tutorial_ACP_OscilatingSystem_ODE_Solver_Euler_RK4.py')
 '''
 
 # Import Libraries

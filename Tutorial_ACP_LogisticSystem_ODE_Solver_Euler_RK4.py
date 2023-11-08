@@ -1,7 +1,8 @@
 '''
 Author: Michael Shaw
 
-This code snippet solves the scaled logistic equation using 
+Background: 
+    This code snippet solves the scaled logistic equation using 
 the Runge-Kutta 4 numerical method 
 and then rescales the solution for different values of α.
  
@@ -18,6 +19,10 @@ for different α and R values, and the results are plotted in a second figure.
 These plots display the dynamics of the scaled logistic equation 
 and its rescaled versions for different values of α, 
 illustrating how the population changes over time.
+
+Usage and Test Case:
+Terminal: python Tutorial_ACP_LogisticSystem_ODE_Solver_Euler_RK4.py
+Spyder Console: runfile('Tutorial_ACP_LogisticSystem_ODE_Solver_Euler_RK4.py')
 '''
 
 #Import Libraries
