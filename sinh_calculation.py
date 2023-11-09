@@ -12,8 +12,11 @@ Background:
 
 Usage: 
     Command line: python sinh_calculation.py
+    Spyder: runfile('sinh_calculation.py') 
 """
 
+# Import Libraries
+import argparse
 import math
 
 def calculate_sinh_methods(value):
@@ -38,9 +41,9 @@ def calculate_sinh_methods(value):
     
     return result_builtin, result_exp_formula, result_e_formula
 
-def main():
+def main(value_of_pi):
     # Set the value to 2 times pi
-    value = 2 * math.pi
+    value = value_of_pi * math.pi
     
     # Calculate the hyperbolic sine of the value using three methods
     sinh_builtin, sinh_exp, sinh_e = calculate_sinh_methods(value)
@@ -63,4 +66,14 @@ def main():
 
 # Check if the script is executed directly (i.e., not imported as a module)
 if __name__ == '__main__':
-    main()
+    # Create a parser object
+    parser = argparse.ArgumentParser(description='Calculate hyperbolic sine of a multiple of pi.')
+    
+    # Add an argument for the multiple of pi, with a default value of 2
+    parser.add_argument('-m', '--multiple', type=float, default=2, help='The multiple of pi to calculate sinh for (default: 2).')
+
+    # Parse the command-line arguments
+    args = parser.parse_args()
+
+    # Pass the user-defined or default value of the multiple of pi to the main function
+    main(args.multiple)

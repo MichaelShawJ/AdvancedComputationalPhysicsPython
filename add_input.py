@@ -9,7 +9,7 @@ you won't be able to pass the numbers directly as command-line arguments.
 Instead, you'll run the script, and it will prompt you to enter the numbers 
 one by one.
 
-Usage: python Tutorial_ACP_AddInput.py
+Usage: python add_input.py
 Followed by answering prompts for two numbers
 
 Test Cases:

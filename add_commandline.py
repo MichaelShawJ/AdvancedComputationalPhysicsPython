@@ -8,6 +8,7 @@ Background:
 
 Usage: 
     Command line: python add_commandline.py <input1> <input2>
+    Spyder: runfile('add_commandline.py', args='<input1> <input2>')
 """
 
 import sys

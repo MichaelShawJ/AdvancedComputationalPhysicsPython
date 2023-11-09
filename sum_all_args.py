@@ -1,6 +1,17 @@
-# The follwoing script is intended to take command line inputs of numbers
-# and add everything together. It is an Add All function updated to P3
+"""
+Author: 
+    Michael Shaw
 
+Background:
+ The follwoing script is intended to take command line inputs of numbers
+ and add everything together. It is an Add All function updated to P3
+
+Usage: 
+    Command line: python sum_all_args.py 25 20 25
+    Spyder: runfile('sum_all_args.py', args='25 20 25')
+"""
+
+# Import Libraries
 import argparse
 
 def calculate_sum(numbers):
@@ -12,7 +23,7 @@ def calculate_sum(numbers):
     try:
         return sum(float(num) for num in numbers)
     except ValueError as e:
-        raise ValueError(f"Error: All arguments must be numbers.") from e
+        raise ValueError(f"Error: All arguments must be numbers. Details: {e}") from e
 
 def main():
     # Set up command-line argument parsing
