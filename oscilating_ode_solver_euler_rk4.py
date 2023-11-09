@@ -33,8 +33,17 @@ u(t)=cos(t) and⁡ u′(t)=−sin(t), which are used to compare against
 the numerical solutions. These plots have been displayed directly in the output
 
 Usage:
-    terminal/cmd: python Tutorial_ACP_OscilatingSystem_ODE_Solver_Euler_RK4.py
-    Sypder: runfile('Tutorial_ACP_OscilatingSystem_ODE_Solver_Euler_RK4.py')
+    terminal/cmd: python oscilating_ode_solver_euler_rk4.py
+    Sypder: runfile('oscilating_ode_solver_euler_rk4.py', args='')
+    
+    To simulate an undamped system (with β=0):
+    --mass 1.0 --beta 0 --spring_constant 1.0 --periods 3.5
+    To simulate an underdamped system (with β less than βcrit):
+    --mass 1.0 --beta 0.1 --spring_constant 1.0 --periods 3.5
+    To simulate a critically damped system (with β=βcrit):
+    --mass 1.0 --beta 2 --spring_constant 1.0 --periods 3.5
+    To simulate an overdamped system (with β greater than βcrit):
+    --mass 1.0 --beta 3 --spring_constant 1.0 --periods 3.5 
 '''
 
 # Import Libraries
@@ -108,36 +117,42 @@ def main():
     # Create argument parser
     parser = argparse.ArgumentParser(description='Simulate an oscillating system using numerical methods.')
     parser.add_argument('--mass', type=float, default=1.0, help='Mass of the oscillator (default: 1.0)')
-    parser.add_argument('--damping_case', type=str, default='undamped', choices=['undamped', 'underdamped', 'critically_damped', 'overdamped'], help='Damping case of the system (default: "undamped")')
+    parser.add_argument('--beta', type=float, default=0.0, help='Damping coefficient (default: 0.0)')
     parser.add_argument('--spring_constant', type=float, default=1.0, help='Spring constant (default: 1.0)')
     parser.add_argument('--periods', type=float, default=3.5, help='Number of periods to simulate (default: 3.5)')
     
     # Parse arguments
     args = parser.parse_args()
 
-    # Define beta values for each case
-    beta_values = {
-        "undamped": 0,
-        "underdamped": 0.1,
-        "critically_damped": 2,
-        "overdamped": 3
-    }
-    
     # Define other Parameters
-    beta = beta_values[args.damping_case]
     k = args.spring_constant
     m = args.mass
+    beta = args.beta
     w_ddot = lambda t: 0
     
+    # Calculate critical damping coefficient
+    omega_n = np.sqrt(k / m)
+    beta_crit = 2 * m * omega_n
+
+    # Determine damping case based on beta value
+    if beta == 0:
+        damping_case = "undamped"
+    elif beta < beta_crit:
+        damping_case = "underdamped"
+    elif beta == beta_crit:
+        damping_case = "critically_damped"
+    else:
+        damping_case = "overdamped"
+
     # Initialize the OscSystem instance
     osc_system = OscSystem(m, beta, k, w_ddot)
     initial_state = [1.0, 0.0]  # [initial displacement, initial velocity]
     total_time = 2 * np.pi * args.periods
 
-     # Run the simulation for each specified numerical method
+    # Run the simulation for each specified numerical method
     methods = [('RK23', 'Forward Euler', 200), ('RK45', 'Runge-Kutta 4', 20)]
     for method, name, npoints_per_period in methods:
-        run_simulation(osc_system, initial_state, method, name, npoints_per_period, total_time, args.damping_case)
+        run_simulation(osc_system, initial_state, method, name, npoints_per_period, total_time, damping_case)
 
 if __name__ == '__main__':
     main()
