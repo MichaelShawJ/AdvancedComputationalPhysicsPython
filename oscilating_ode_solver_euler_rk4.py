@@ -38,64 +38,106 @@ Usage:
 '''
 
 # Import Libraries
+import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
 
+# Exact solution based on the damping case
+def exact_solution(t, m, beta, k, damping_case):
+    omega_n = np.sqrt(k / m)
+    zeta = beta / (2 * m * omega_n)
+
+    if damping_case == "undamped":
+        return np.cos(omega_n * t), -omega_n * np.sin(omega_n * t)
+    elif damping_case == "underdamped":
+        omega_d = omega_n * np.sqrt(1 - zeta ** 2)
+        A = np.exp(-zeta * omega_n * t)
+        return A * np.cos(omega_d * t), -A * (zeta * omega_n * np.sin(omega_d * t) + omega_d * np.cos(omega_d * t))
+    elif damping_case == "critically_damped":
+        A = np.exp(-omega_n * t)
+        return A, -omega_n * A
+    elif damping_case == "overdamped":
+        r1 = -omega_n * (zeta + np.sqrt(zeta ** 2 - 1))
+        r2 = -omega_n * (zeta - np.sqrt(zeta ** 2 - 1))
+        C1 = (r2 * 1) / (r2 - r1)
+        C2 = (1 - C1)
+        return C1 * np.exp(r1 * t) + C2 * np.exp(r2 * t), r1 * C1 * np.exp(r1 * t) + r2 * C2 * np.exp(r2 * t)
+    else:
+        raise ValueError("Invalid damping case. Choose 'undamped', 'underdamped', 'critically_damped', or 'overdamped'.")
+
 class OscSystem:
-    def __init__(self, m, beta, k, g, w_ddot):
+    def __init__(self, m, beta, k, w_ddot):
         self.m = m
         self.beta = beta
         self.k = k
-        self.g = g
         self.w_ddot = w_ddot
     
     def system_of_equations(self, t, u):
         u0, u1 = u
-        u2 = (self.w_ddot(t) + self.g - (self.beta / self.m) * u1 - (self.k / self.m) * u0)
+        u2 = (self.w_ddot(t) - (self.beta / self.m) * u1 - (self.k / self.m) * u0)
         return [u1, u2]
 
-def plot_results(time, numerical, exact, title, ylabel):
+def plot_results(time, numerical, exact, title, ylabel, damping_case):
     plt.figure()
     plt.plot(time, numerical, 'r-', label='Numerical')
     plt.plot(time, exact, 'b--', label='Exact')
-    plt.title(title)
+    full_title = f"{title} - {damping_case.capitalize()}"
+    plt.title(full_title)
     plt.legend()
     plt.xlabel('Time t')
     plt.ylabel(ylabel)
     plt.grid(True)
     plt.show()
 
-def run_simulation(osc_system, initial_state, method, name, npoints_per_period, total_time):
+def run_simulation(osc_system, initial_state, method, name, npoints_per_period, total_time, damping_case):
     n_points = int(npoints_per_period * total_time / (2 * np.pi) + 1)
     t_eval = np.linspace(0, total_time, n_points)
     solution = solve_ivp(osc_system.system_of_equations, [0, total_time], initial_state, method=method, t_eval=t_eval)
-    
-    # Exact solutions
-    exact_displacement = np.cos(solution.t)
-    exact_velocity = -np.sin(solution.t)
+
+    # Calculate the exact solutions based on damping case
+    exact_displacement, exact_velocity = exact_solution(solution.t, osc_system.m, osc_system.beta, osc_system.k, damping_case)
     
     # Plot the results for displacement
-    plot_results(solution.t, solution.y[0], exact_displacement, f'Displacement - {name}', 'Displacement u(t)')
-    
+    plot_results(solution.t, solution.y[0], exact_displacement, f'Displacement - {name}', 'Displacement u(t)', damping_case)
+
     # Plot the results for velocity
-    plot_results(solution.t, solution.y[1], exact_velocity, f'Velocity - {name}', 'Velocity u\'(t)')
+    plot_results(solution.t, solution.y[1], exact_velocity, f'Velocity - {name}', 'Velocity u\'(t)', damping_case)
 
 def main():
-    m = 1.0
-    beta = 0.0
-    k = 1.0
-    g = 0.0
+    # Create argument parser
+    parser = argparse.ArgumentParser(description='Simulate an oscillating system using numerical methods.')
+    parser.add_argument('--mass', type=float, default=1.0, help='Mass of the oscillator (default: 1.0)')
+    parser.add_argument('--damping_case', type=str, default='undamped', choices=['undamped', 'underdamped', 'critically_damped', 'overdamped'], help='Damping case of the system (default: "undamped")')
+    parser.add_argument('--spring_constant', type=float, default=1.0, help='Spring constant (default: 1.0)')
+    parser.add_argument('--periods', type=float, default=3.5, help='Number of periods to simulate (default: 3.5)')
+    
+    # Parse arguments
+    args = parser.parse_args()
+
+    # Define beta values for each case
+    beta_values = {
+        "undamped": 0,
+        "underdamped": 0.1,
+        "critically_damped": 2,
+        "overdamped": 3
+    }
+    
+    # Define other Parameters
+    beta = beta_values[args.damping_case]
+    k = args.spring_constant
+    m = args.mass
     w_ddot = lambda t: 0
-
-    osc_system = OscSystem(m, beta, k, g, w_ddot)
+    
+    # Initialize the OscSystem instance
+    osc_system = OscSystem(m, beta, k, w_ddot)
     initial_state = [1.0, 0.0]  # [initial displacement, initial velocity]
-    nperiods = 3.5
-    total_time = 2 * np.pi * nperiods
+    total_time = 2 * np.pi * args.periods
 
+     # Run the simulation for each specified numerical method
     methods = [('RK23', 'Forward Euler', 200), ('RK45', 'Runge-Kutta 4', 20)]
     for method, name, npoints_per_period in methods:
-        run_simulation(osc_system, initial_state, method, name, npoints_per_period, total_time)
+        run_simulation(osc_system, initial_state, method, name, npoints_per_period, total_time, args.damping_case)
 
 if __name__ == '__main__':
     main()
