@@ -53,10 +53,10 @@ def exact_solution(t, m, beta, k, damping_case):
     elif damping_case == "underdamped":
         omega_d = omega_n * np.sqrt(1 - zeta ** 2)
         A = np.exp(-zeta * omega_n * t)
-        return A * np.cos(omega_d * t), -A * (zeta * omega_n * np.sin(omega_d * t) + omega_d * np.cos(omega_d * t))
+        return np.exp(-zeta * omega_n * t) * (np.cos(omega_d * t) + (omega_n * zeta / omega_d) * np.sin(omega_d * t)), -(omega_d**2 + omega_n**2 * zeta**2) * np.exp(-zeta * omega_n * t) * np.sin(omega_d * t) / omega_d
     elif damping_case == "critically_damped":
         A = np.exp(-omega_n * t)
-        return A, -omega_n * A
+        return (1 + omega_n * t) * A, -omega_n * (1 + omega_n * t) * A + omega_n * A
     elif damping_case == "overdamped":
         r1 = -omega_n * (zeta + np.sqrt(zeta ** 2 - 1))
         r2 = -omega_n * (zeta - np.sqrt(zeta ** 2 - 1))
